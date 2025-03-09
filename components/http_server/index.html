@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Parameter Configuration</title>
+  </head>
+  <body>
+    <h1>Parameter Configuration</h1>
+    <form id="configForm">
+      <label for="paramName">Parameter Name:</label>
+      <input type="text" id="paramName" name="paramName" required />
+      <br />
+      <label for="paramValue">Parameter Value:</label>
+      <input type="text" id="paramValue" name="paramValue" required />
+      <br />
+      <button type="button" onclick="readParam()">Read</button>
+      <button type="button" onclick="writeParam()">Write</button>
+    </form>
+    <p id="response"></p>
+
+    <script>
+      function readParam() {
+        const paramName = document.getElementById("paramName").value;
+        fetch(`/read?name=${paramName}`)
+          .then((response) => response.text())
+          .then((data) => {
+            document.getElementById("response").innerText = `Value: ${data}`;
+          });
+      }
+
+      function writeParam() {
+        const paramName = document.getElementById("paramName").value;
+        const paramValue = document.getElementById("paramValue").value;
+        fetch(`/write`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name: paramName, value: paramValue }),
+        })
+          .then((response) => response.text())
+          .then((data) => {
+            document.getElementById("response").innerText = data;
+          });
+      }
+    </script>
+  </body>
+</html>
