@@ -29,11 +29,18 @@ static esp_err_t read_get_handler(httpd_req_t *req)
         char name[32];
         if (httpd_query_key_value(param, "name", name, sizeof(name)) == ESP_OK)
         {
-            nvs_read_string(name, value, "default", sizeof(value));
+            ESP_LOGI(TAG, "Found URL query parameter -> name=%s", name);
+            if (nvs_read_string(name, value, "default", sizeof(value)) != 0)
+            {
+                ESP_LOGE(TAG, "Parameter %s not found", name);
+                httpd_resp_send_404(req);
+                return ESP_FAIL;
+            }
             httpd_resp_send(req, value, strlen(value));
             return ESP_OK;
         }
     }
+    ESP_LOGE(TAG, "No URL query parameter found");
     httpd_resp_send_404(req);
     return ESP_FAIL;
 }
@@ -68,7 +75,13 @@ static esp_err_t write_post_handler(httpd_req_t *req)
 
     if (cJSON_IsString(name) && cJSON_IsString(value))
     {
-        nvs_write_string(name->valuestring, value->valuestring);
+        ESP_LOGI(TAG, "Writing parameter %s with value %s", name->valuestring, value->valuestring);
+        if (nvs_write_string(name->valuestring, value->valuestring) != 0)
+        {
+            httpd_resp_send_500(req);
+            cJSON_Delete(json);
+            return ESP_FAIL;
+        }
         httpd_resp_send(req, "Parameter written successfully", strlen("Parameter written successfully"));
     }
     else
